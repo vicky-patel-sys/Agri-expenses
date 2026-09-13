@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-<title>खेती खर्चा बही</title>
+<title>Agri Expense Record</title>
 <meta name="theme-color" content="#2B2118" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -50,6 +50,61 @@
     font-size: 15px;
     font-family: 'Inter', sans-serif;
   }
+  .session-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #FBF7EA;
+    border: 1px solid #D9CBA5;
+    border-left: 4px solid #5B7A3A;
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .session-card:active { background: rgba(0,0,0,0.03); }
+  .session-card-name { font-size: 15px; font-weight: 600; }
+  .session-card-total { font-size: 14px; font-weight: 700; color: #4A7043; }
+  button.new-session {
+    width: 100%;
+    padding: 12px 14px;
+    background: #4A7043;
+    color: #FBF7EA;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  button.back-btn {
+    background: none;
+    border: none;
+    color: #3A5A78;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 0;
+  }
+  .detail-session-name {
+    font-size: 17px;
+    font-weight: 700;
+  }
+  button.del-session {
+    padding: 7px 10px;
+    background: none;
+    border: 1px solid #A63D40;
+    color: #A63D40;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+  }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   .row3 { display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end; }
   button.add {
@@ -78,6 +133,30 @@
     background: none; border: none; color: #A63D40; cursor: pointer; font-size: 16px; padding: 4px;
   }
   .empty { font-size: 14px; color: #8A7B68; font-style: italic; }
+  .cat-group {
+    border: 1px solid #D9CBA5;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    background: #FBF7EA;
+  }
+  .cat-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    cursor: pointer;
+    border-left: 4px solid;
+    user-select: none;
+  }
+  .cat-group-header:active { background: rgba(0,0,0,0.03); }
+  .cat-group-name { font-size: 14px; font-weight: 600; }
+  .cat-group-count { font-size: 12px; color: #8A7B68; font-weight: 400; margin-left: 6px; }
+  .cat-group-right { display: flex; align-items: center; gap: 10px; }
+  .cat-group-total { font-size: 15px; font-weight: 700; }
+  .cat-group-arrow { font-size: 12px; color: #8A7B68; transition: transform 0.15s; }
+  .cat-group-body { padding: 0 14px; }
+  .cat-group-body .entry:last-child { border-bottom: none; }
   .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 26px; }
   .cat-box { background: #FBF7EA; border-radius: 4px; padding: 10px 12px; border: 1px dashed; }
   .cat-label { font-size: 12px; color: #6B5D4D; margin-bottom: 3px; }
@@ -87,14 +166,25 @@
     display: flex; align-items: center; justify-content: space-between;
   }
   .grand-label { font-size: 16px; font-weight: 700; }
-  .grand-total { font-size: 24px; font-weight: 700; color: #D4A017; }
+  .grand-total { font-size: 24px; font-weight: 700; color: #8BC34A; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="inner">
-    <h1 class="ledger-heading">🌱 खेती खर्चा बही</h1>
-    <p class="subtitle">हर खर्च यहाँ लिखो — आख़िर में कैटेगरी के हिसाब से जोड़ मिलेगा</p>
+    <div id="home-view">
+      <h1 class="ledger-heading">🌱 Agri Expense Record</h1>
+      <p class="subtitle">कौन सा सीजन खोलना है?</p>
+      <div id="session-list"></div>
+      <button class="new-session" onclick="createSession()">+ नया सीजन जोड़ो</button>
+    </div>
+
+    <div id="detail-view" style="display:none;">
+      <div class="detail-header">
+        <button class="back-btn" onclick="goHome()">← सीजन</button>
+        <span class="detail-session-name ledger-heading" id="detail-session-name"></span>
+        <button class="del-session" onclick="deleteSession()">मिटाओ</button>
+      </div>
 
     <div class="card">
       <div class="row2">
@@ -134,6 +224,7 @@
       <span class="grand-label ledger-heading">🌾 कुल जोड़ (Overall Total)</span>
       <span class="tabular grand-total" id="grand-total">₹0</span>
     </div>
+    </div>
   </div>
 </div>
 
@@ -142,30 +233,108 @@ const CATEGORIES = [
   { id: "khad", label: "खाद (Fertilizer)", color: "#5B7A3A" },
   { id: "dawai", label: "दवाई (Pesticide/Dawaiyan)", color: "#A63D40" },
   { id: "majdoori", label: "मजदूरी (Labour)", color: "#3A5A78" },
-  { id: "beej", label: "बीज (Seeds)", color: "#B8860B" },
+  { id: "beej", label: "बीज (Seeds)", color: "#8D6E3A" },
   { id: "sinchai", label: "सिंचाई/डीज़ल (Irrigation/Diesel)", color: "#6B4226" },
   { id: "anya", label: "अन्य (Other)", color: "#7A6C5D" },
 ];
-const STORAGE_KEY = "kheti-kharcha-entries";
+const STORAGE_KEY = "kheti-kharcha-data";
+const OLD_STORAGE_KEY = "kheti-kharcha-entries"; // pichhle single-session version se migrate karne ke liye
 
-function loadEntries() {
+function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) { return []; }
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+
+  // Purana data mila to usko "सीजन 1" me daal do, taaki kuch delete na ho
+  let migratedEntries = [];
+  try {
+    const oldRaw = localStorage.getItem(OLD_STORAGE_KEY);
+    if (oldRaw) migratedEntries = JSON.parse(oldRaw);
+  } catch (e) {}
+
+  const firstId = Date.now().toString();
+  return {
+    sessions: [{ id: firstId, name: "सीजन 1", entries: migratedEntries }],
+    activeId: firstId,
+  };
 }
-function saveEntries(entries) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 function fmt(n) {
   return "₹" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 }
 
-let entries = loadEntries();
+let data = loadData();
+
+function activeSession() {
+  return data.sessions.find(s => s.id === data.activeId) || data.sessions[0];
+}
 
 function populateCategorySelect() {
   const sel = document.getElementById("category");
   sel.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.label}</option>`).join("");
+}
+
+function sessionTotal(s) {
+  return s.entries.reduce((sum, e) => sum + e.amount, 0);
+}
+
+function renderHomeList() {
+  const list = document.getElementById("session-list");
+  list.innerHTML = data.sessions.map(s => `
+    <div class="session-card" onclick="openSession('${s.id}')">
+      <span class="session-card-name">${s.name}</span>
+      <span class="tabular session-card-total">${fmt(sessionTotal(s))}</span>
+    </div>
+  `).join("");
+}
+
+function showHomeView() {
+  document.getElementById("detail-view").style.display = "none";
+  document.getElementById("home-view").style.display = "block";
+  renderHomeList();
+}
+
+function showDetailView() {
+  document.getElementById("home-view").style.display = "none";
+  document.getElementById("detail-view").style.display = "block";
+  document.getElementById("detail-session-name").textContent = activeSession().name;
+  render();
+}
+
+function openSession(id) {
+  data.activeId = id;
+  saveData();
+  showDetailView();
+}
+
+function goHome() {
+  showHomeView();
+}
+
+function createSession() {
+  const name = prompt("नए सीजन/फ़सल का नाम लिखो (जैसे: धान 2026, गेहूं 2026, मूंग 2026)");
+  if (!name || !name.trim()) return;
+  const id = Date.now().toString();
+  data.sessions.push({ id, name: name.trim(), entries: [] });
+  data.activeId = id;
+  saveData();
+  showDetailView();
+}
+
+function deleteSession() {
+  if (data.sessions.length <= 1) {
+    alert("कम से कम एक सीजन रहना चाहिए, इसे मिटा नहीं सकते।");
+    return;
+  }
+  const s = activeSession();
+  if (!confirm(`"${s.name}" वाला पूरा सीजन और उसके सारे खर्चे मिटाना है?`)) return;
+  data.sessions = data.sessions.filter(x => x.id !== s.id);
+  data.activeId = data.sessions[0].id;
+  saveData();
+  showHomeView();
 }
 
 function addEntry() {
@@ -174,36 +343,62 @@ function addEntry() {
   const category = document.getElementById("category").value;
   const amount = parseFloat(document.getElementById("amount").value);
   if (!item || !amount || amount <= 0) return;
-  entries.unshift({ id: Date.now().toString(), date, item, category, amount });
-  saveEntries(entries);
+  activeSession().entries.unshift({ id: Date.now().toString(), date, item, category, amount });
+  saveData();
   document.getElementById("item").value = "";
   document.getElementById("amount").value = "";
   render();
 }
 
 function deleteEntry(id) {
-  entries = entries.filter(e => e.id !== id);
-  saveEntries(entries);
+  const s = activeSession();
+  s.entries = s.entries.filter(e => e.id !== id);
+  saveData();
+  render();
+}
+
+let collapsedCats = {};
+
+function toggleCategory(catId) {
+  collapsedCats[catId] = !collapsedCats[catId];
   render();
 }
 
 function render() {
+  const entries = activeSession().entries;
   const list = document.getElementById("entries-list");
   if (entries.length === 0) {
     list.innerHTML = `<p class="empty">अभी तक कोई खर्चा नहीं लिखा गया। ऊपर से पहला खर्चा जोड़ो।</p>`;
   } else {
-    list.innerHTML = entries.map(e => {
-      const cat = CATEGORIES.find(c => c.id === e.category);
-      return `<div class="entry">
-        <div>
-          <div class="entry-item">${e.item}</div>
-          <div class="entry-meta">${e.date} · <span style="color:${cat?.color}">${cat?.label}</span></div>
+    list.innerHTML = CATEGORIES.map(cat => {
+      const catEntries = entries.filter(e => e.category === cat.id);
+      if (catEntries.length === 0) return "";
+      const total = catEntries.reduce((s, e) => s + e.amount, 0);
+      const collapsed = !!collapsedCats[cat.id];
+      const rows = catEntries.map(e => `
+        <div class="entry">
+          <div>
+            <div class="entry-item">${e.item}</div>
+            <div class="entry-meta">${e.date}</div>
+          </div>
+          <div style="display:flex;align-items:center;">
+            <span class="tabular entry-amt">${fmt(e.amount)}</span>
+            <button class="del-btn" onclick="event.stopPropagation(); deleteEntry('${e.id}')">✕</button>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;">
-          <span class="tabular entry-amt">${fmt(e.amount)}</span>
-          <button class="del-btn" onclick="deleteEntry('${e.id}')">✕</button>
+      `).join("");
+      return `
+        <div class="cat-group">
+          <div class="cat-group-header" style="border-left-color:${cat.color}" onclick="toggleCategory('${cat.id}')">
+            <span class="cat-group-name">${cat.label}<span class="cat-group-count">(${catEntries.length})</span></span>
+            <span class="cat-group-right">
+              <span class="tabular cat-group-total" style="color:${cat.color}">${fmt(total)}</span>
+              <span class="cat-group-arrow">${collapsed ? "▸" : "▾"}</span>
+            </span>
+          </div>
+          ${collapsed ? "" : `<div class="cat-group-body">${rows}</div>`}
         </div>
-      </div>`;
+      `;
     }).join("");
   }
 
@@ -226,7 +421,7 @@ function render() {
 
 document.getElementById("date").value = new Date().toISOString().slice(0, 10);
 populateCategorySelect();
-render();
+showHomeView();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
