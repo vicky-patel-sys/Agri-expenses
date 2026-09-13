@@ -1,4 +1,4 @@
-const CACHE_NAME = "kheti-kharcha-v1";
+const CACHE_NAME = "kheti-kharcha-v6";
 const FILES_TO_CACHE = ["./index.html", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
