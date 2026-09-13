@@ -1,6 +1,6 @@
 {
-  "name": "खेती खर्चा बही",
-  "short_name": "खेती खर्चा",
+  "name": "Agri Expense Record",
+  "short_name": "Agri Expense",
   "description": "Farming expense tracker - fertilizer, pesticide, labour aur baaki kharcho ka hisaab",
   "start_url": "./index.html",
   "display": "standalone",
