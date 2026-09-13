@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>खेती खर्चा बही</title>
+<meta name="theme-color" content="#2B2118" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #2B2118;
+    background: #EFE6CC;
+    background-image: repeating-linear-gradient(180deg, transparent, transparent 34px, rgba(58,90,120,0.14) 35px);
+  }
+  .ledger-heading { font-family: 'Zilla Slab', serif; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding-left: 28px;
+    border-left: 3px solid #A63D40;
+    min-height: 100vh;
+    background: rgba(255,252,240,0.35);
+  }
+  .inner { padding: 36px 20px 60px 20px; }
+  h1 { font-size: 26px; font-weight: 700; margin: 0; }
+  .subtitle { margin: 6px 0 24px 0; font-size: 14px; color: #5A4E40; }
+  .card {
+    background: #FBF7EA;
+    border: 1px solid #D9CBA5;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  label { font-size: 12px; color: #6B5D4D; display: block; margin-bottom: 4px; }
+  input, select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #C9BB98;
+    border-radius: 3px;
+    background: #FFFDF6;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .row3 { display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end; }
+  button.add {
+    padding: 10px 16px;
+    background: #5B7A3A;
+    color: #FBF7EA;
+    border: none;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  h2 { font-size: 16px; font-weight: 700; margin: 0 0 12px 0; }
+  .entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 4px;
+    border-bottom: 1px solid rgba(58,90,120,0.18);
+  }
+  .entry-item { font-size: 14px; font-weight: 500; }
+  .entry-meta { font-size: 12px; color: #8A7B68; }
+  .entry-amt { font-size: 15px; font-weight: 600; margin-right: 10px; }
+  .del-btn {
+    background: none; border: none; color: #A63D40; cursor: pointer; font-size: 16px; padding: 4px;
+  }
+  .empty { font-size: 14px; color: #8A7B68; font-style: italic; }
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 26px; }
+  .cat-box { background: #FBF7EA; border-radius: 4px; padding: 10px 12px; border: 1px dashed; }
+  .cat-label { font-size: 12px; color: #6B5D4D; margin-bottom: 3px; }
+  .cat-total { font-size: 18px; font-weight: 700; }
+  .grand {
+    background: #2B2118; color: #FBF7EA; border-radius: 4px; padding: 18px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .grand-label { font-size: 16px; font-weight: 700; }
+  .grand-total { font-size: 24px; font-weight: 700; color: #D4A017; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="inner">
+    <h1 class="ledger-heading">🌱 खेती खर्चा बही</h1>
+    <p class="subtitle">हर खर्च यहाँ लिखो — आख़िर में कैटेगरी के हिसाब से जोड़ मिलेगा</p>
+
+    <div class="card">
+      <div class="row2">
+        <div>
+          <label>तारीख़</label>
+          <input type="date" id="date" />
+        </div>
+        <div>
+          <label>कैटेगरी</label>
+          <select id="category"></select>
+        </div>
+      </div>
+      <div class="row3">
+        <div>
+          <label>किस चीज़ का खर्चा</label>
+          <input type="text" id="item" placeholder="जैसे: यूरिया की बोरी, ट्रैक्टर किराया..." />
+        </div>
+        <div>
+          <label>रकम (₹)</label>
+          <input type="number" id="amount" placeholder="0" />
+        </div>
+        <button class="add" onclick="addEntry()">+ जोड़ो</button>
+      </div>
+    </div>
+
+    <div>
+      <h2 class="ledger-heading">सारे खर्चे</h2>
+      <div id="entries-list"></div>
+    </div>
+
+    <div>
+      <h2 class="ledger-heading">कैटेगरी के हिसाब से जोड़</h2>
+      <div class="cat-grid" id="cat-totals"></div>
+    </div>
+
+    <div class="grand">
+      <span class="grand-label ledger-heading">🌾 कुल जोड़ (Overall Total)</span>
+      <span class="tabular grand-total" id="grand-total">₹0</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATEGORIES = [
+  { id: "khad", label: "खाद (Fertilizer)", color: "#5B7A3A" },
+  { id: "dawai", label: "दवाई (Pesticide/Dawaiyan)", color: "#A63D40" },
+  { id: "majdoori", label: "मजदूरी (Labour)", color: "#3A5A78" },
+  { id: "beej", label: "बीज (Seeds)", color: "#B8860B" },
+  { id: "sinchai", label: "सिंचाई/डीज़ल (Irrigation/Diesel)", color: "#6B4226" },
+  { id: "anya", label: "अन्य (Other)", color: "#7A6C5D" },
+];
+const STORAGE_KEY = "kheti-kharcha-entries";
+
+function loadEntries() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+function saveEntries(entries) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+function fmt(n) {
+  return "₹" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+}
+
+let entries = loadEntries();
+
+function populateCategorySelect() {
+  const sel = document.getElementById("category");
+  sel.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.label}</option>`).join("");
+}
+
+function addEntry() {
+  const date = document.getElementById("date").value;
+  const item = document.getElementById("item").value.trim();
+  const category = document.getElementById("category").value;
+  const amount = parseFloat(document.getElementById("amount").value);
+  if (!item || !amount || amount <= 0) return;
+  entries.unshift({ id: Date.now().toString(), date, item, category, amount });
+  saveEntries(entries);
+  document.getElementById("item").value = "";
+  document.getElementById("amount").value = "";
+  render();
+}
+
+function deleteEntry(id) {
+  entries = entries.filter(e => e.id !== id);
+  saveEntries(entries);
+  render();
+}
+
+function render() {
+  const list = document.getElementById("entries-list");
+  if (entries.length === 0) {
+    list.innerHTML = `<p class="empty">अभी तक कोई खर्चा नहीं लिखा गया। ऊपर से पहला खर्चा जोड़ो।</p>`;
+  } else {
+    list.innerHTML = entries.map(e => {
+      const cat = CATEGORIES.find(c => c.id === e.category);
+      return `<div class="entry">
+        <div>
+          <div class="entry-item">${e.item}</div>
+          <div class="entry-meta">${e.date} · <span style="color:${cat?.color}">${cat?.label}</span></div>
+        </div>
+        <div style="display:flex;align-items:center;">
+          <span class="tabular entry-amt">${fmt(e.amount)}</span>
+          <button class="del-btn" onclick="deleteEntry('${e.id}')">✕</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  const totals = {};
+  CATEGORIES.forEach(c => totals[c.id] = 0);
+  entries.forEach(e => totals[e.category] = (totals[e.category] || 0) + e.amount);
+
+  const catGrid = document.getElementById("cat-totals");
+  const shown = CATEGORIES.filter(c => totals[c.id] > 0 || entries.length === 0);
+  catGrid.innerHTML = shown.map(c => `
+    <div class="cat-box" style="border-color:${c.color}">
+      <div class="cat-label">${c.label}</div>
+      <div class="tabular cat-total" style="color:${c.color}">${fmt(totals[c.id] || 0)}</div>
+    </div>
+  `).join("");
+
+  const grand = entries.reduce((s, e) => s + e.amount, 0);
+  document.getElementById("grand-total").textContent = fmt(grand);
+}
+
+document.getElementById("date").value = new Date().toISOString().slice(0, 10);
+populateCategorySelect();
+render();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
